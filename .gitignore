@@ -1,0 +1,24 @@
+# Sanal ortam (Virtual Environment) klasörü
+venv/
+.venv/
+env/
+
+# Veri seti (Fotoğraflar çok büyük olduğu için git'e gitmemeli)
+data/
+
+# Python'un oluşturduğu gereksiz dosyalar
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Veritabanı dosyaları (Opsiyonel: Eğer veritabanının git'e gitmesini istemiyorsan)
+*.db
+*.sqlite3
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
+
+# Yapay zeka modelleri (Büyük ağırlık dosyaları)
+*.pt
+*.onnx
