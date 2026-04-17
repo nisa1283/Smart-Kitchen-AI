@@ -1,24 +1,21 @@
-# Sanal ortam (Virtual Environment) klasörü
+# Sanal Ortam
 venv/
-.venv/
-env/
+**/__pycache__/
+*.pyc
 
-# Veri seti (Fotoğraflar çok büyük olduğu için git'e gitmemeli)
+# Veri Setleri ve Ham Görüntüler
 data/
+datasets/
+dataset/
 
-# Python'un oluşturduğu gereksiz dosyalar
-__pycache__/
-*.py[cod]
-*$py.class
+# Modeller (Sadece bizim özel best.pt gitsin, diğerleri kalsın)
+*.pt
+!models/best.pt
 
-# Veritabanı dosyaları (Opsiyonel: Eğer veritabanının git'e gitmesini istemiyorsan)
+# Veritabanı
 *.db
-*.sqlite3
+src/mutfak.db
 
-# İşletim sistemi dosyaları
+# OS dosyaları
 .DS_Store
 Thumbs.db
-
-# Yapay zeka modelleri (Büyük ağırlık dosyaları)
-*.pt
-*.onnx

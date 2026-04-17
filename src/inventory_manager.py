@@ -1,24 +1,50 @@
 import sqlite3
 from datetime import datetime
 
-def urun_ekle_veya_guncelle(urun_adi, kategori):
+def _init_db(conn):
+    """Tablo yoksa oluşturur — her çağrıda güvenli."""
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS envanter (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            urun_adi TEXT NOT NULL,
+            kategori TEXT DEFAULT 'Genel',
+            miktar INTEGER DEFAULT 0,
+            eklenme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+            son_kullanma_tarihi DATE
+        )
+    ''')
+    conn.commit()
+
+def urun_ekle_ve_guncelle(urun_adi, kategori="Mutfak", adet=1):
     conn = sqlite3.connect('mutfak.db')
+    _init_db(conn)
     cursor = conn.cursor()
 
-    # Ürün veritabanında var mı kontrol et
     cursor.execute("SELECT miktar FROM envanter WHERE urun_adi = ?", (urun_adi,))
     data = cursor.fetchone()
 
     if data:
-        # Varsa miktarını 1 artır
-        yeni_miktar = data[0] + 1
-        cursor.execute("UPDATE envanter SET miktar = ? WHERE urun_adi = ?", (yeni_miktar, urun_adi))
-        print(f"🔄 {urun_adi} güncellendi. Yeni miktar: {yeni_miktar}")
+        yeni_miktar = data[0] + adet
+        cursor.execute(
+            "UPDATE envanter SET miktar = ? WHERE urun_adi = ?",
+            (yeni_miktar, urun_adi)
+        )
+        print(f"🔄 {urun_adi} güncellendi → miktar: {yeni_miktar}")
     else:
-        # Yoksa yeni kayıt aç
-        cursor.execute("INSERT INTO envanter (urun_adi, kategori, miktar) VALUES (?, ?, ?)", 
-                       (urun_adi, kategori, 1))
-        print(f"✅ {urun_adi} sisteme ilk kez eklendi.")
+        cursor.execute(
+            "INSERT INTO envanter (urun_adi, kategori, miktar) VALUES (?, ?, ?)",
+            (urun_adi, kategori, adet)
+        )
+        print(f"✅ {urun_adi} sisteme eklendi.")
 
     conn.commit()
     conn.close()
+
+def envanter_listele():
+    conn = sqlite3.connect('mutfak.db')
+    _init_db(conn)
+    rows = conn.execute(
+        "SELECT urun_adi, kategori, miktar, eklenme_tarihi FROM envanter ORDER BY urun_adi"
+    ).fetchall()
+    conn.close()
+    return rows
