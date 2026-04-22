@@ -1,16 +1,14 @@
 import sqlite3
 
 def create_db():
-    # Veritabanı dosyasına bağlan (Yoksa otomatik oluşturur)
+
     conn = sqlite3.connect('mutfak.db')
     cursor = conn.cursor()
 
-    # ÖNEMLİ: Eğer eski hatalı bir tablo varsa onu siliyoruz (Sıfırdan başlamak için)
+
     cursor.execute("DROP TABLE IF EXISTS envanter")
     print("🗑️ Eski tablo silindi, tertemiz bir sayfa açılıyor...")
 
-    # Yeni ve geliştirilmiş tablo yapısını oluşturuyoruz
-    # SQL'de boş geçilemez kuralı NOT NULL ile yazılır
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS envanter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
