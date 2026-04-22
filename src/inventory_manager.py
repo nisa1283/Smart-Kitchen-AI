@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 
 def _init_db(conn):
-    """Tablo yoksa oluşturur — her çağrıda güvenli."""
+
     conn.execute('''
         CREATE TABLE IF NOT EXISTS envanter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
