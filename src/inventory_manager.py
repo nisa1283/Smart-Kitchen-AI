@@ -1,5 +1,9 @@
 import sqlite3
+import os
 from datetime import datetime
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'mutfak.db')
 
 def _init_db(conn):
 
@@ -16,7 +20,7 @@ def _init_db(conn):
     conn.commit()
 
 def urun_ekle_ve_guncelle(urun_adi, kategori="Mutfak", adet=1):
-    conn = sqlite3.connect('mutfak.db')
+    conn = sqlite3.connect(DB_PATH)
     _init_db(conn)
     cursor = conn.cursor()
 
@@ -41,7 +45,7 @@ def urun_ekle_ve_guncelle(urun_adi, kategori="Mutfak", adet=1):
     conn.close()
 
 def envanter_listele():
-    conn = sqlite3.connect('mutfak.db')
+    conn = sqlite3.connect(DB_PATH)
     _init_db(conn)
     rows = conn.execute(
         "SELECT urun_adi, kategori, miktar, eklenme_tarihi FROM envanter ORDER BY urun_adi"

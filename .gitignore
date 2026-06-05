@@ -19,3 +19,6 @@ src/mutfak.db
 # OS dosyaları
 .DS_Store
 Thumbs.db
+# runs/
+# detect/
+# venv/

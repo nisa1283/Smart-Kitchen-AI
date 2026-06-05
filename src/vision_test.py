@@ -3,7 +3,7 @@ import cv2
 import os
 import inventory_manager
 
-model_path = os.path.join('..', 'models', 'best.pt')
+model_path = os.path.join('..', 'models', 'best3.pt')
 
 if not os.path.exists(model_path):
     print(f"❌ Model bulunamadı: {model_path}")
@@ -19,7 +19,7 @@ def resimdeki_nesneleri_bul(image_path):
         return
 
     frame = cv2.imread(image_path)
-    results = model(frame, verbose=False, conf=0.35, iou=0.5)
+    results = model(frame, verbose=False, conf=0.01, iou=0.2)
     annotated = results[0].plot()
 
     # Tespit edilen nesneleri say

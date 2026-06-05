@@ -6,6 +6,10 @@ import pandas as pd
 import sqlite3
 from ultralytics import YOLO
 import inventory_manager
+import recipe_manager
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'mutfak.db')
 
 # --- SAYFA AYARI ---
 st.set_page_config(
@@ -17,7 +21,7 @@ st.set_page_config(
 # --- MODEL YÜKLE ---
 @st.cache_resource
 def load_model():
-    model_path = os.path.join('..', 'models', 'best.pt')
+    model_path = os.path.join('..', 'models', 'best3.pt')
     if not os.path.exists(model_path):
         st.error("❌ Model bulunamadı! model/best.pt yolunu kontrol et.")
         return None
@@ -27,7 +31,7 @@ model = load_model()
 
 # --- VERİTABANI OKUMA ---
 def get_envanter():
-    conn = sqlite3.connect('mutfak.db')
+    conn = sqlite3.connect(DB_PATH)
     df = pd.read_sql_query(
         "SELECT urun_adi AS 'Ürün', kategori AS 'Kategori', miktar AS 'Miktar', "
         "eklenme_tarihi AS 'Eklenme Tarihi' FROM envanter ORDER BY urun_adi",
@@ -37,13 +41,13 @@ def get_envanter():
     return df
 
 def urun_sil(urun_adi):
-    conn = sqlite3.connect('mutfak.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.execute("DELETE FROM envanter WHERE urun_adi = ?", (urun_adi,))
     conn.commit()
     conn.close()
 
 def miktar_guncelle(urun_adi, yeni_miktar):
-    conn = sqlite3.connect('mutfak.db')
+    conn = sqlite3.connect(DB_PATH)
     if yeni_miktar <= 0:
         conn.execute("DELETE FROM envanter WHERE urun_adi = ?", (urun_adi,))
     else:
@@ -53,7 +57,7 @@ def miktar_guncelle(urun_adi, yeni_miktar):
 
 # --- NESNE TESPİTİ ---
 def nesne_tespit_et(image):
-    results = model(image, verbose=False, conf=0.35, iou=0.5)
+    results = model(image, verbose=False, conf=0.01, iou=0.2)
     annotated = results[0].plot()
     annotated_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
 
@@ -72,7 +76,7 @@ def nesne_tespit_et(image):
 # =====================
 # SEKMELER
 # =====================
-tab1, tab2, tab3 = st.tabs(["🔍 Tarama", "📦 Envanter", "📊 İstatistik"])
+tab1, tab2, tab3, tab4 = st.tabs(["🔍 Tarama", "📦 Envanter", "📊 İstatistik", "🍳 Tarif Öner"])
 
 # =====================
 # SEKME 1 — TARAMA
@@ -266,3 +270,63 @@ with tab3:
         st.divider()
         st.subheader("Tüm Veriler")
         st.dataframe(df, use_container_width=True, hide_index=True)
+
+# =====================
+# SEKME 4 — TARİF ÖNERİ
+# =====================
+with tab4:
+    st.header("🍳 Elimdekilerle Ne Pişirebilirim?")
+
+    import recipe_manager
+    mevcut = recipe_manager.envanterdeki_malzemeleri_al()
+
+    if not mevcut:
+        st.info("Henüz envanterde ürün yok. Önce Tarama sekmesinden ürün ekle!")
+    else:
+        st.write(f"**Envanterdeki malzemeler ({len(mevcut)} adet):**")
+        st.write(", ".join(mevcut))
+        
+        st.divider()
+
+        min_eslesme = st.slider(
+            "En az kaç malzeme eşleşsin?",
+            min_value=1,
+            max_value=min(5, len(mevcut)),
+            value=1
+        )
+
+        if st.button("🔍 Tarif Öner!", use_container_width=True):
+            with st.spinner("Tarifler aranıyor..."):
+                tarifler = recipe_manager.elindekilere_gore_tarif_oner(min_eslesme)
+
+            if not tarifler:
+                st.warning("Eşleşen tarif bulunamadı.")
+            else:
+                st.success(f"✅ {len(tarifler)} tarif bulundu!")
+                
+                for i in range(0, len(tarifler), 2):
+                    cols = st.columns(2)
+                    for j, col in enumerate(cols):
+                        if i + j < len(tarifler):
+                            tarif = tarifler[i + j]
+                            with col:
+                                with st.container(border=True):
+                                    if tarif["foto"]:
+                                        st.image(tarif["foto"], use_container_width=True)
+                                    st.subheader(tarif["isim"])
+                                    st.caption(
+                                        f"🌍 {tarif['mutfak']} · "
+                                        f"🍽️ {tarif['kategori']} · "
+                                        f"✅ {tarif['eslesme_sayisi']} malzeme eşleşti"
+                                    )
+                                    with st.expander("📋 Malzemeler"):
+                                        for m in tarif["malzemeler"]:
+                                            st.write(f"• {m}")
+                                    with st.expander("👨‍🍳 Yapılış"):
+                                        st.write(tarif["talimatlar"][:500] + "...")
+                                    if tarif["youtube"]:
+                                        st.link_button(
+                                            "▶️ YouTube'da İzle",
+                                            tarif["youtube"],
+                                            use_container_width=True
+                                        )
