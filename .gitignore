@@ -11,6 +11,8 @@ dataset/
 # Modeller (Sadece bizim özel best.pt gitsin, diğerleri kalsın)
 *.pt
 !models/best.pt
+!models/best2.pt
+!models/best3.pt
 
 # Veritabanı
 *.db
@@ -19,6 +21,8 @@ src/mutfak.db
 # OS dosyaları
 .DS_Store
 Thumbs.db
-# runs/
-# detect/
-# venv/
+runs/
+detect/
+.env
+venv/
+env/
